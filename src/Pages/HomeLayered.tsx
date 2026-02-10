@@ -1,70 +1,88 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Instagram, Facebook, Twitter, ExternalLink } from "lucide-react";
 import LayeredCard from "../Components/LayeredCard";
 
-const HomeLayered = () => {
+const layeredSections = [
+  {
+    id: 1,
+    category: "PITTURA",
+    gradient: "from-red-900 via-red-700 to-orange-600",
+    link: "/painting",
+    zIndex: 10,
+  },
+  {
+    id: 2,
+    category: "DIGITAL ART",
+    gradient: "from-purple-900 via-indigo-700 to-blue-600",
+    link: "/digital-art",
+    zIndex: 20,
+  },
+  {
+    id: 3,
+    category: "FOTOGRAFIA",
+    gradient: "from-blue-900 via-cyan-700 to-teal-600",
+    link: "/photography",
+    zIndex: 30,
+  },
+  {
+    id: 4,
+    category: "T-SHIRT",
+    gradient: "from-pink-900 via-rose-700 to-red-600",
+    link: "/tshirts",
+    zIndex: 40,
+  },
+];
+
+function HomeLayered() {
   const [isHeroVisible, setIsHeroVisible] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
+    function handleScroll() {
       setIsHeroVisible(window.scrollY < 100);
-    };
-
-    window.addEventListener("scroll", handleScroll);
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleArrowClick = () => {
-    const cardsSection = document.querySelector(".cards-section");
-    if (cardsSection) {
-      cardsSection.scrollIntoView({ behavior: "smooth" });
-    }
+    const el = document.getElementById("cards-section");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const layeredSections = [
-    {
-      id: 1,
-      category: "PITTURA",
-      gradient: "from-red-900 via-red-700 to-orange-600",
-      link: "/painting",
-      zIndex: 10,
-    },
-    {
-      id: 2,
-      category: "DIGITAL ART",
-      gradient: "from-purple-900 via-indigo-700 to-blue-600",
-      link: "/digital-art",
-      zIndex: 20,
-    },
-    {
-      id: 3,
-      category: "FOTOGRAFIA",
-      gradient: "from-blue-900 via-cyan-700 to-teal-600",
-      link: "/photography",
-      zIndex: 30,
-    },
-    {
-      id: 4,
-      category: "T-SHIRT",
-      gradient: "from-pink-900 via-rose-700 to-red-600",
-      link: "/tshirts",
-      zIndex: 40,
-    },
-  ];
-
   return (
-    <div className="bg-slate-950" style={{ marginTop: "-72px" }}>
-      {/* HERO SECTION */}
-      <section className="relative w-full h-screen flex items-center justify-center px-8 md:px-12 overflow-hidden">
-        {/* Background Gradient navy→rosso */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] to-[#7c2d12]"></div>
+    <div
+      style={{
+        marginTop: "-72px",       /* offset the .App padding-top so hero is full-screen */
+        background: "#020617",
+      }}
+    >
+      {/* ─── HERO ─── */}
+      <section
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* background gradient */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to bottom right, #020617, #7c2d12)",
+          }}
+        />
 
-        {/* Content */}
-        <div className="relative z-10 w-full h-full flex flex-col">
-          {/* Nome - basso sinistra */}
-          <div className="absolute bottom-8 left-12 z-20">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white uppercase tracking-wider leading-tight"
-                style={{ fontSize: "60px" }}
+        {/* hero content */}
+        <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%" }}>
+          {/* Name - bottom left */}
+          <div style={{ position: "absolute", bottom: 32, left: 48 }}>
+            <h1
+              className="font-serif text-white uppercase tracking-wider"
+              style={{ fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1 }}
             >
               Massimo
               <br />
@@ -72,59 +90,74 @@ const HomeLayered = () => {
             </h1>
           </div>
 
-          {/* Sottotitolo - basso destra */}
-          <div className="absolute bottom-8 right-12 z-20">
-            <p className="text-base md:text-lg text-gray-200 uppercase tracking-widest font-light text-right">
+          {/* Subtitle - bottom right */}
+          <div style={{ position: "absolute", bottom: 32, right: 48 }}>
+            <p
+              className="text-gray-200 uppercase tracking-widest font-light text-right"
+              style={{ fontSize: "clamp(12px, 1.5vw, 18px)" }}
+            >
               Artista Visuale e Pittore Cosmico
             </p>
           </div>
 
-          {/* Arrow Bounce - basso dx */}
+          {/* Scroll arrow */}
           <button
             onClick={handleArrowClick}
             className={`absolute bottom-8 right-8 text-white hover:text-gray-300 transition-all duration-300 ${
               isHeroVisible ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
-            aria-label="Scorri giù"
+            aria-label="Scorri verso le categorie"
           >
-            <ChevronDown
-              size={40}
-              className="arrow-bounce"
-              strokeWidth={1.5}
-            />
+            <ChevronDown size={40} className="arrow-bounce" strokeWidth={1.5} />
           </button>
         </div>
       </section>
 
-      {/* LAYERED CARDS SECTION */}
-      <section className="cards-section">
-        {layeredSections.map((section) => (
+      {/* ─── STICKY CARDS ─── */}
+      <div id="cards-section">
+        {layeredSections.map((s) => (
           <LayeredCard
-            key={section.id}
-            category={section.category}
-            gradient={section.gradient}
-            link={section.link}
-            zIndex={section.zIndex}
+            key={s.id}
+            category={s.category}
+            gradient={s.gradient}
+            link={s.link}
+            zIndex={s.zIndex}
           />
         ))}
-      </section>
+      </div>
 
-      {/* CONTACT SECTION */}
-      <section className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20" style={{ zIndex: 50 }}>
-        <div className="max-w-2xl w-full text-center">
-          <h2 className="text-6xl md:text-7xl font-serif text-white uppercase tracking-wider mb-12">
+      {/* ─── CONTACT ─── */}
+      <section
+        style={{
+          position: "relative",
+          zIndex: 50,
+          width: "100%",
+          minHeight: "100vh",
+          background: "#020617",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "80px 24px",
+        }}
+      >
+        <div style={{ maxWidth: 640, width: "100%", textAlign: "center" }}>
+          <h2
+            className="font-serif text-white uppercase tracking-wider"
+            style={{ fontSize: "clamp(40px, 6vw, 72px)", marginBottom: 48 }}
+          >
             Contatti
           </h2>
 
           <a
             href="mailto:arte@massimodistefano.com"
-            className="text-xl md:text-2xl text-gray-300 hover:text-white transition-colors mb-16 block"
+            className="text-gray-300 hover:text-white transition-colors block"
+            style={{ fontSize: "clamp(16px, 2vw, 24px)", marginBottom: 64 }}
           >
             arte@massimodistefano.com
           </a>
 
-          {/* Social Icons */}
-          <div className="flex justify-center items-center gap-8 mb-16">
+          {/* Social */}
+          <div className="flex justify-center items-center gap-8" style={{ marginBottom: 64 }}>
             <a
               href="https://www.instagram.com/massimodistefano65/"
               target="_blank"
@@ -163,14 +196,13 @@ const HomeLayered = () => {
             </a>
           </div>
 
-          {/* Copyright */}
           <p className="text-xs text-white/40 uppercase tracking-widest">
-            © 2026 Massimo Di Stefano · Tutti i diritti riservati
+            &copy; 2026 Massimo Di Stefano &middot; Tutti i diritti riservati
           </p>
         </div>
       </section>
     </div>
   );
-};
+}
 
 export default HomeLayered;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 interface LayeredCardProps {
@@ -8,80 +8,96 @@ interface LayeredCardProps {
   zIndex: number;
 }
 
-const LayeredCard: React.FC<LayeredCardProps> = ({
-  category,
-  gradient,
-  link,
-  zIndex,
-}) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [buttonPos, setButtonPos] = useState({ x: 0, y: 0 });
+function LayeredCard({ category, gradient, link, zIndex }: LayeredCardProps) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef(0);
 
-  const handleScroll = useCallback(() => {
-    if (!cardRef.current || !innerRef.current) return;
+  // scroll-driven state for scale + brightness
+  const [scale, setScale] = useState(1);
+  const [brightness, setBrightness] = useState(1);
 
-    const rect = cardRef.current.getBoundingClientRect();
-    // When the card is stuck at top (rect.top <= 0) and scrolling continues,
-    // the parent div keeps moving up. We measure how far past the viewport top
-    // the parent has gone to determine how much the next card is covering this one.
-    const scrollPast = -rect.top;
-    const cardHeight = cardRef.current.offsetHeight;
+  // mouse-follow VIEW button
+  const [btnX, setBtnX] = useState(-200);
+  const [btnY, setBtnY] = useState(-200);
+  const [showBtn, setShowBtn] = useState(false);
 
-    if (scrollPast > 0 && scrollPast < cardHeight) {
-      // Progress from 0 (just stuck) to 1 (fully scrolled past)
-      const progress = Math.min(scrollPast / cardHeight, 1);
-      // Scale down from 1.0 to 0.9
-      const scale = 1 - progress * 0.1;
-      // Slightly dim the card as it goes behind
-      const brightness = 1 - progress * 0.3;
-      innerRef.current.style.transform = `scale(${scale})`;
-      innerRef.current.style.filter = `brightness(${brightness})`;
-    } else if (scrollPast <= 0) {
-      innerRef.current.style.transform = "scale(1)";
-      innerRef.current.style.filter = "brightness(1)";
-    }
-  }, []);
+  // depth shadow grows as card is covered
+  const shadowOpacity = Math.max(0, (1 - scale) * 10); // 0 -> 1
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    function onScroll() {
+      // cancel any queued frame so we only run once per paint
+      cancelAnimationFrame(rafRef.current);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        const el = cardRef.current;
+        if (!el) return;
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+        const rect = el.getBoundingClientRect();
+        const h = el.offsetHeight || 1;
 
-    setButtonPos({
-      x: x - 40,
-      y: y - 20,
-    });
-  };
+        // scrollPast = how many px the sticky wrapper has scrolled above viewport top
+        const scrollPast = -rect.top;
+
+        if (scrollPast > 0 && scrollPast < h) {
+          const progress = scrollPast / h;                  // 0 -> 1
+          const nextScale = 1 - Math.min(progress, 1) * 0.1;  // 1.0 -> 0.9
+          const nextBright = 1 - Math.min(progress, 1) * 0.3; // 1.0 -> 0.7
+          setScale(nextScale);
+          setBrightness(nextBright);
+        } else if (scrollPast <= 0) {
+          setScale(1);
+          setBrightness(1);
+        }
+      });
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // run once on mount so the first card renders correctly
+    onScroll();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
     <div
       ref={cardRef}
-      onMouseMove={handleMouseMove}
-      className="sticky top-0 h-screen w-full"
+      className="sticky top-0"
       style={{
-        zIndex: zIndex,
+        zIndex,
+        height: "100vh",
+        minHeight: "100vh",
       }}
+      onMouseMove={(e) => {
+        const el = cardRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        setBtnX(e.clientX - r.left);
+        setBtnY(e.clientY - r.top);
+      }}
+      onMouseEnter={() => setShowBtn(true)}
+      onMouseLeave={() => setShowBtn(false)}
     >
+      {/* Inner card -- scale + dim driven by React state */}
       <div
-        ref={innerRef}
-        className={`relative w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
+        className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
         style={{
-          transition: "transform 0.1s linear, filter 0.1s linear",
+          transform: `scale(${scale})`,
+          filter: `brightness(${brightness})`,
+          transition: "transform 0.15s linear, filter 0.15s linear",
           transformOrigin: "center center",
-          borderRadius: "0px",
+          boxShadow:
+            shadowOpacity > 0.01
+              ? `0 ${8 + shadowOpacity * 20}px ${20 + shadowOpacity * 40}px rgba(0,0,0,${0.2 + shadowOpacity * 0.5})`
+              : "none",
         }}
       >
-        {/* Nome Categoria CENTRO */}
+        {/* Category name */}
         <h2
-          className="text-center font-serif text-white uppercase tracking-wider pointer-events-none"
+          className="text-center font-serif text-white uppercase tracking-wider pointer-events-none select-none"
           style={{
             fontSize: "clamp(40px, 8vw, 80px)",
             lineHeight: "1",
@@ -91,23 +107,26 @@ const LayeredCard: React.FC<LayeredCardProps> = ({
           {category}
         </h2>
 
-        {/* VIEW Button Follow Mouse */}
+        {/* VIEW button follows mouse */}
         <Link
           to={link}
-          className="absolute z-20"
+          className="absolute pointer-events-auto"
           style={{
-            left: `${buttonPos.x}px`,
-            top: `${buttonPos.y}px`,
+            left: btnX,
+            top: btnY,
             transform: "translate(-50%, -50%)",
+            opacity: showBtn ? 1 : 0,
+            transition: "opacity 0.15s",
+            zIndex: 20,
           }}
         >
-          <button className="px-8 py-4 bg-white/90 hover:bg-white text-black font-bold uppercase tracking-widest rounded-full text-sm transition-all duration-200 shadow-2xl hover:shadow-lg hover:scale-110 cursor-pointer pointer-events-auto">
+          <span className="inline-block px-8 py-4 bg-white/90 hover:bg-white text-black font-bold uppercase tracking-widest rounded-full text-sm shadow-2xl hover:shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer">
             VIEW
-          </button>
+          </span>
         </Link>
       </div>
     </div>
   );
-};
+}
 
 export default LayeredCard;
