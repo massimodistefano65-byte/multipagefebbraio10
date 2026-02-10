@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, Instagram, Facebook, Twitter, ExternalLink } from "lucide-react";
+import {
+  ChevronDown,
+  Instagram,
+  Facebook,
+  Twitter,
+  ExternalLink,
+} from "lucide-react";
 import LayeredCard from "../Components/LayeredCard";
 
 const HomeLayered = () => {
@@ -9,7 +15,6 @@ const HomeLayered = () => {
     const handleScroll = () => {
       setIsHeroVisible(window.scrollY < 100);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -53,16 +58,52 @@ const HomeLayered = () => {
   ];
 
   return (
-    <div className="bg-slate-950" style={{ marginTop: "-72px" }}>
+    <div
+      style={{
+        background: "#020617",
+        marginTop: "-72px",
+      }}
+    >
       {/* HERO SECTION */}
-      <section className="relative w-full h-screen flex items-center justify-center px-8 md:px-12 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] to-[#7c2d12]" />
+      <section
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 2rem",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(135deg, #020617, #7c2d12)",
+          }}
+        />
 
-        <div className="relative z-10 w-full h-full flex flex-col">
-          <div className="absolute bottom-8 left-12 z-20">
+        <div
+          style={{
+            position: "relative",
+            zIndex: 10,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ position: "absolute", bottom: "2rem", left: "3rem", zIndex: 20 }}>
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-serif text-white uppercase tracking-wider leading-tight"
-              style={{ fontSize: "60px" }}
+              style={{
+                fontSize: "clamp(2rem, 5vw, 3.75rem)",
+                fontFamily: "serif",
+                color: "#fff",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                lineHeight: 1.1,
+              }}
             >
               Massimo
               <br />
@@ -70,17 +111,35 @@ const HomeLayered = () => {
             </h1>
           </div>
 
-          <div className="absolute bottom-8 right-12 z-20">
-            <p className="text-base md:text-lg text-gray-200 uppercase tracking-widest font-light text-right">
+          <div style={{ position: "absolute", bottom: "2rem", right: "3rem", zIndex: 20 }}>
+            <p
+              style={{
+                fontSize: "clamp(0.75rem, 1.5vw, 1.125rem)",
+                color: "#e5e7eb",
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                fontWeight: 300,
+                textAlign: "right",
+              }}
+            >
               Artista Visuale e Pittore Cosmico
             </p>
           </div>
 
           <button
             onClick={handleArrowClick}
-            className={`absolute bottom-8 right-8 text-white hover:text-gray-300 transition-all duration-300 ${
-              isHeroVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+            style={{
+              position: "absolute",
+              bottom: "2rem",
+              right: "2rem",
+              color: "#fff",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.3s",
+              opacity: isHeroVisible ? 1 : 0,
+              pointerEvents: isHeroVisible ? "auto" : "none",
+            }}
             aria-label="Scorri giù"
           >
             <ChevronDown size={40} className="arrow-bounce" strokeWidth={1.5} />
@@ -89,7 +148,10 @@ const HomeLayered = () => {
       </section>
 
       {/* LAYERED CARDS SECTION */}
-      <section className="cards-section relative">
+      <div
+        className="cards-section"
+        style={{ position: "relative" }}
+      >
         {layeredSections.map((section) => (
           <LayeredCard
             key={section.id}
@@ -99,26 +161,58 @@ const HomeLayered = () => {
             zIndex={section.zIndex}
           />
         ))}
-      </section>
+      </div>
 
       {/* CONTACT SECTION */}
       <section
-        className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20"
-        style={{ zIndex: 50 }}
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: "100vh",
+          background: "#020617",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "5rem 1.5rem",
+          zIndex: 50,
+        }}
       >
-        <div className="max-w-2xl w-full text-center">
-          <h2 className="text-6xl md:text-7xl font-serif text-white uppercase tracking-wider mb-12">
+        <div style={{ maxWidth: "42rem", width: "100%", textAlign: "center" }}>
+          <h2
+            style={{
+              fontSize: "clamp(2.5rem, 5vw, 4.5rem)",
+              fontFamily: "serif",
+              color: "#fff",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              marginBottom: "3rem",
+            }}
+          >
             Contatti
           </h2>
 
           <a
             href="mailto:arte@massimodistefano.com"
-            className="text-xl md:text-2xl text-gray-300 hover:text-white transition-colors mb-16 block"
+            style={{
+              fontSize: "clamp(1rem, 2vw, 1.5rem)",
+              color: "#d1d5db",
+              textDecoration: "none",
+              display: "block",
+              marginBottom: "4rem",
+            }}
           >
             arte@massimodistefano.com
           </a>
 
-          <div className="flex justify-center items-center gap-8 mb-16">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "2rem",
+              marginBottom: "4rem",
+            }}
+          >
             <a
               href="https://www.instagram.com/massimodistefano65/"
               target="_blank"
@@ -157,7 +251,14 @@ const HomeLayered = () => {
             </a>
           </div>
 
-          <p className="text-xs text-white/40 uppercase tracking-widest">
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "rgba(255,255,255,0.4)",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+            }}
+          >
             &copy; 2026 Massimo Di Stefano &middot; Tutti i diritti riservati
           </p>
         </div>
