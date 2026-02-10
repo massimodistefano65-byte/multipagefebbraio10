@@ -17,60 +17,57 @@ function LayeredCard({
   isLast = false,
 }: LayeredCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const rafRef = useRef(0);
+  const ticking = useRef(false);
 
-  const [scale, setScale] = useState(1);
-  const [brightness, setBrightness] = useState(1);
-  const [translateY, setTranslateY] = useState(0);
+  // progress 0 = fully visible, 1 = fully covered
+  const [progress, setProgress] = useState(0);
 
   const [btnX, setBtnX] = useState(-9999);
   const [btnY, setBtnY] = useState(-9999);
   const [showBtn, setShowBtn] = useState(false);
 
   useEffect(() => {
-    // Last card never shrinks -- nothing comes after it
-    if (isLast) return;
+    if (isLast) return undefined;
 
     function onScroll() {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
+      if (ticking.current) return;
+      ticking.current = true;
+
+      requestAnimationFrame(() => {
+        ticking.current = false;
         const el = cardRef.current;
         if (!el) return;
 
         const rect = el.getBoundingClientRect();
         const h = rect.height || 1;
+        // scrollPast = how many pixels the card has scrolled past the viewport top
         const scrollPast = -rect.top;
 
         if (scrollPast > 0 && scrollPast < h) {
-          const p = Math.min(scrollPast / h, 1);
-          setScale(1 - p * 0.35);        // 1.0  ->  0.65
-          setBrightness(1 - p * 0.5);    // 1.0  ->  0.5
-          setTranslateY(p * 20);          // 0    ->  20px
+          setProgress(Math.min(scrollPast / h, 1));
         } else if (scrollPast <= 0) {
-          setScale(1);
-          setBrightness(1);
-          setTranslateY(0);
+          setProgress(0);
+        } else {
+          setProgress(1);
         }
       });
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafRef.current);
-    };
+    onScroll(); // initial check
+    return () => window.removeEventListener("scroll", onScroll);
   }, [isLast]);
 
-  // Shadow grows as the card shrinks
-  const progress = Math.max(0, 1 - scale) / 0.35; // normalise 0..1
-  const shadow =
-    progress > 0.01
-      ? `0 ${10 + progress * 30}px ${30 + progress * 60}px rgba(0,0,0,${
-          0.3 + progress * 0.5
-        })`
-      : "0 4px 20px rgba(0,0,0,0.15)";
+  // Derived values from progress
+  const p = isLast ? 0 : progress;
+  const scale = 1 - p * 0.40;           // 1.0 -> 0.60
+  const brightness = 1 - p * 0.50;      // 1.0 -> 0.50
+  const opacity = 1 - p * 0.50;         // 1.0 -> 0.50
+  const blur = p * 4;                    // 0   -> 4px
+  const offsetY = p * 20;               // 0   -> 20px
+  const shadowSpread = 10 + p * 40;
+  const shadowBlur = 30 + p * 80;
+  const shadowOpacity = 0.2 + p * 0.6;
 
   return (
     <div
@@ -84,6 +81,7 @@ function LayeredCard({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        perspective: "1200px",
       }}
       onMouseMove={(e) => {
         const el = cardRef.current;
@@ -111,12 +109,15 @@ function LayeredCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          transform: `scale(${scale}) translateY(${translateY}px)`,
-          filter: `brightness(${brightness})`,
-          transition: "transform 0.12s linear, filter 0.12s linear, box-shadow 0.12s linear",
+          transform: `scale(${scale}) translateY(${offsetY}px) translateZ(0)`,
+          filter: `brightness(${brightness}) blur(${blur}px)`,
+          opacity,
+          transition:
+            "transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), filter 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
           transformOrigin: "center center",
-          boxShadow: shadow,
-          willChange: "transform, filter",
+          boxShadow: `0 ${shadowSpread}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity})`,
+          willChange: "transform, filter, opacity",
+          backfaceVisibility: "hidden",
         }}
       >
         {/* Category title */}

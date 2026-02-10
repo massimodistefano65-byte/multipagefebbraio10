@@ -116,7 +116,10 @@ function HomeLayered() {
       {/* ─── STICKY CARDS ─── */}
       <div
         id="cards-section"
-        style={{ background: "#010409" }}
+        style={{
+          background: "#010409",
+          perspective: "1200px",
+        }}
       >
         {layeredSections.map((s, i) => (
           <LayeredCard
