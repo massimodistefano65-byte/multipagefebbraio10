@@ -27,33 +27,33 @@ const HomeLayered = () => {
       category: "PITTURA",
       gradient: "from-red-900 via-red-700 to-orange-600",
       link: "/painting",
-      zIndex: 40,
+      zIndex: 10,
     },
     {
       id: 2,
       category: "DIGITAL ART",
       gradient: "from-purple-900 via-indigo-700 to-blue-600",
       link: "/digital-art",
-      zIndex: 30,
+      zIndex: 20,
     },
     {
       id: 3,
       category: "FOTOGRAFIA",
       gradient: "from-blue-900 via-cyan-700 to-teal-600",
       link: "/photography",
-      zIndex: 20,
+      zIndex: 30,
     },
     {
       id: 4,
       category: "T-SHIRT",
       gradient: "from-pink-900 via-rose-700 to-red-600",
       link: "/tshirts",
-      zIndex: 10,
+      zIndex: 40,
     },
   ];
 
   return (
-    <div className="bg-slate-950 overflow-x-hidden">
+    <div className="bg-slate-950" style={{ marginTop: "-72px" }}>
       {/* HERO SECTION */}
       <section className="relative w-full h-screen flex items-center justify-center px-8 md:px-12 overflow-hidden">
         {/* Background Gradient navy→rosso */}
@@ -110,7 +110,7 @@ const HomeLayered = () => {
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20 z-0">
+      <section className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20" style={{ zIndex: 50 }}>
         <div className="max-w-2xl w-full text-center">
           <h2 className="text-6xl md:text-7xl font-serif text-white uppercase tracking-wider mb-12">
             Contatti

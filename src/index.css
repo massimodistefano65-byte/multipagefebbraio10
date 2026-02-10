@@ -948,15 +948,4 @@ body {
   animation: arrowBounce 2s ease-in-out infinite;
 }
 
-/* CARD REVEAL ANIMATIONS */
-.card-hidden {
-  opacity: 0;
-  transform: translateY(50px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.card-visible {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
+/* CARD REVEAL ANIMATIONS - now handled by JS in LayeredCard */

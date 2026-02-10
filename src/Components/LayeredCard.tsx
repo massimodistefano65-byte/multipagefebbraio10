@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 interface LayeredCardProps {
@@ -15,29 +15,38 @@ const LayeredCard: React.FC<LayeredCardProps> = ({
   zIndex,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [buttonPos, setButtonPos] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.2 }
-    );
+  const handleScroll = useCallback(() => {
+    if (!cardRef.current || !innerRef.current) return;
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
+    const rect = cardRef.current.getBoundingClientRect();
+    // When the card is stuck at top (rect.top <= 0) and scrolling continues,
+    // the parent div keeps moving up. We measure how far past the viewport top
+    // the parent has gone to determine how much the next card is covering this one.
+    const scrollPast = -rect.top;
+    const cardHeight = cardRef.current.offsetHeight;
+
+    if (scrollPast > 0 && scrollPast < cardHeight) {
+      // Progress from 0 (just stuck) to 1 (fully scrolled past)
+      const progress = Math.min(scrollPast / cardHeight, 1);
+      // Scale down from 1.0 to 0.9
+      const scale = 1 - progress * 0.1;
+      // Slightly dim the card as it goes behind
+      const brightness = 1 - progress * 0.3;
+      innerRef.current.style.transform = `scale(${scale})`;
+      innerRef.current.style.filter = `brightness(${brightness})`;
+    } else if (scrollPast <= 0) {
+      innerRef.current.style.transform = "scale(1)";
+      innerRef.current.style.filter = "brightness(1)";
     }
-
-    return () => {
-      if (cardRef.current) {
-        observer.unobserve(cardRef.current);
-      }
-    };
   }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -56,24 +65,28 @@ const LayeredCard: React.FC<LayeredCardProps> = ({
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      className={`sticky top-0 h-screen w-screen flex items-center justify-center transition-all duration-1000 ${
-        isVisible ? "card-visible" : "card-hidden"
-      }`}
+      className="sticky top-0 h-screen w-full"
       style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(50px)",
         zIndex: zIndex,
       }}
     >
-      <div className={`relative w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
+      <div
+        ref={innerRef}
+        className={`relative w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
+        style={{
+          transition: "transform 0.1s linear, filter 0.1s linear",
+          transformOrigin: "center center",
+          borderRadius: "0px",
+        }}
       >
         {/* Nome Categoria CENTRO */}
-        <h2 className="text-center font-serif text-white uppercase tracking-wider pointer-events-none"
-            style={{
-              fontSize: "80px",
-              lineHeight: "1",
-              textShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-            }}
+        <h2
+          className="text-center font-serif text-white uppercase tracking-wider pointer-events-none"
+          style={{
+            fontSize: "clamp(40px, 8vw, 80px)",
+            lineHeight: "1",
+            textShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          }}
         >
           {category}
         </h2>
