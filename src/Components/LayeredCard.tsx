@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 interface LayeredCardProps {
@@ -8,68 +8,104 @@ interface LayeredCardProps {
   zIndex: number;
 }
 
-const LayeredCard = ({ category, gradient, link, zIndex }: LayeredCardProps) => {
+const LayeredCard: React.FC<LayeredCardProps> = ({
+  category,
+  gradient,
+  link,
+  zIndex,
+}) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [buttonPos, setButtonPos] = useState({ x: -9999, y: -9999 });
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [buttonPos, setButtonPos] = useState({ x: 0, y: 0 });
+
+  const handleScroll = useCallback(() => {
+    if (!cardRef.current || !innerRef.current) return;
+
+    const rect = cardRef.current.getBoundingClientRect();
+    // When the card is stuck at top (rect.top <= 0) and scrolling continues,
+    // the parent div keeps moving up. We measure how far past the viewport top
+    // the parent has gone to determine how much the next card is covering this one.
+    const scrollPast = -rect.top;
+    const cardHeight = cardRef.current.offsetHeight;
+
+    if (scrollPast > 0 && scrollPast < cardHeight) {
+      // Progress from 0 (just stuck) to 1 (fully scrolled past)
+      const progress = Math.min(scrollPast / cardHeight, 1);
+      // Scale down from 1.0 to 0.9
+      const scale = 1 - progress * 0.1;
+      // Slightly dim the card as it goes behind
+      const brightness = 1 - progress * 0.3;
+      innerRef.current.style.transform = `scale(${scale})`;
+      innerRef.current.style.filter = `brightness(${brightness})`;
+    } else if (scrollPast <= 0) {
+      innerRef.current.style.transform = "scale(1)";
+      innerRef.current.style.filter = "brightness(1)";
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setButtonPos({
+      x: x - 40,
+      y: y - 20,
+    });
+  };
 
   return (
     <div
       ref={cardRef}
-      onMouseMove={(e) => {
-        const card = cardRef.current;
-        if (!card) return;
-        const rect = card.getBoundingClientRect();
-        setButtonPos({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        });
-      }}
-      onMouseLeave={() => setButtonPos({ x: -9999, y: -9999 })}
-      className={`bg-gradient-to-br ${gradient}`}
+      onMouseMove={handleMouseMove}
+      className="sticky top-0 h-screen w-full"
       style={{
-        position: "sticky",
-        top: 0,
-        height: "100vh",
-        minHeight: "100vh",
-        width: "100%",
-        zIndex,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        zIndex: zIndex,
       }}
     >
-      <h2
+      <div
+        ref={innerRef}
+        className={`relative w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
         style={{
-          textAlign: "center",
-          fontFamily: "serif",
-          color: "#fff",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          pointerEvents: "none",
-          fontSize: "clamp(40px, 8vw, 80px)",
-          lineHeight: 1,
-          textShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          transition: "transform 0.1s linear, filter 0.1s linear",
+          transformOrigin: "center center",
+          borderRadius: "0px",
         }}
       >
-        {category}
-      </h2>
+        {/* Nome Categoria CENTRO */}
+        <h2
+          className="text-center font-serif text-white uppercase tracking-wider pointer-events-none"
+          style={{
+            fontSize: "clamp(40px, 8vw, 80px)",
+            lineHeight: "1",
+            textShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          {category}
+        </h2>
 
-      <Link
-        to={link}
-        style={{
-          position: "absolute",
-          left: buttonPos.x,
-          top: buttonPos.y,
-          transform: "translate(-50%, -50%)",
-          zIndex: 20,
-          pointerEvents: buttonPos.x === -9999 ? "none" : "auto",
-          opacity: buttonPos.x === -9999 ? 0 : 1,
-        }}
-      >
-        <button className="px-8 py-4 bg-white/90 hover:bg-white text-black font-bold uppercase tracking-widest rounded-full text-sm transition-all duration-200 shadow-2xl hover:shadow-lg hover:scale-110 cursor-pointer">
-          VIEW
-        </button>
-      </Link>
+        {/* VIEW Button Follow Mouse */}
+        <Link
+          to={link}
+          className="absolute z-20"
+          style={{
+            left: `${buttonPos.x}px`,
+            top: `${buttonPos.y}px`,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <button className="px-8 py-4 bg-white/90 hover:bg-white text-black font-bold uppercase tracking-widest rounded-full text-sm transition-all duration-200 shadow-2xl hover:shadow-lg hover:scale-110 cursor-pointer pointer-events-auto">
+            VIEW
+          </button>
+        </Link>
+      </div>
     </div>
   );
 };

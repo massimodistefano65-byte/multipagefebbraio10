@@ -10,10 +10,6 @@
 }
 
 /* BODY CHIARO */
-html, body {
-  overflow: visible !important;
-}
-
 body {
   font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont,
     sans-serif;
@@ -910,7 +906,6 @@ body {
 
 .App {
   padding-top: 72px; /* spazio per la navbar fissa */
-  overflow: visible !important;
 }
 
 /* NAVBAR LAYERED ANIMATIONS */
@@ -953,4 +948,4 @@ body {
   animation: arrowBounce 2s ease-in-out infinite;
 }
 
-/* CARD REVEAL - sticky cards use CSS position: sticky only */
+/* CARD REVEAL ANIMATIONS - now handled by JS in LayeredCard */

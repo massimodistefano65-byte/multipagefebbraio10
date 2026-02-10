@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import type React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
@@ -50,7 +49,7 @@ const NavbarLayered = () => {
           ? "bg-black/80 backdrop-blur-md border-b border-white/5"
           : "bg-transparent border-b border-white/0"
       }`}
-      style={{ zIndex: 9999 }}
+      style={{ zIndex: 100 }}
     >
       <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         {/* Logo Hidden */}

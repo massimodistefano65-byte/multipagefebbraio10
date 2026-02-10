@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavbarLayered from "./Components/NavbarLayered";
 import HomeLayered from "./Pages/HomeLayered";
