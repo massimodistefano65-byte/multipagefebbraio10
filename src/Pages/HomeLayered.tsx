@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Instagram, Facebook, Twitter, ExternalLink } from "lucide-react";
 import LayeredCard from "../Components/LayeredCard";
 
@@ -56,15 +56,13 @@ const HomeLayered = () => {
     <div className="bg-slate-950" style={{ marginTop: "-72px" }}>
       {/* HERO SECTION */}
       <section className="relative w-full h-screen flex items-center justify-center px-8 md:px-12 overflow-hidden">
-        {/* Background Gradient navy→rosso */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] to-[#7c2d12]"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] to-[#7c2d12]" />
 
-        {/* Content */}
         <div className="relative z-10 w-full h-full flex flex-col">
-          {/* Nome - basso sinistra */}
           <div className="absolute bottom-8 left-12 z-20">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white uppercase tracking-wider leading-tight"
-                style={{ fontSize: "60px" }}
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl font-serif text-white uppercase tracking-wider leading-tight"
+              style={{ fontSize: "60px" }}
             >
               Massimo
               <br />
@@ -72,14 +70,12 @@ const HomeLayered = () => {
             </h1>
           </div>
 
-          {/* Sottotitolo - basso destra */}
           <div className="absolute bottom-8 right-12 z-20">
             <p className="text-base md:text-lg text-gray-200 uppercase tracking-widest font-light text-right">
               Artista Visuale e Pittore Cosmico
             </p>
           </div>
 
-          {/* Arrow Bounce - basso dx */}
           <button
             onClick={handleArrowClick}
             className={`absolute bottom-8 right-8 text-white hover:text-gray-300 transition-all duration-300 ${
@@ -87,17 +83,13 @@ const HomeLayered = () => {
             }`}
             aria-label="Scorri giù"
           >
-            <ChevronDown
-              size={40}
-              className="arrow-bounce"
-              strokeWidth={1.5}
-            />
+            <ChevronDown size={40} className="arrow-bounce" strokeWidth={1.5} />
           </button>
         </div>
       </section>
 
       {/* LAYERED CARDS SECTION */}
-      <section className="cards-section">
+      <section className="cards-section relative">
         {layeredSections.map((section) => (
           <LayeredCard
             key={section.id}
@@ -110,7 +102,10 @@ const HomeLayered = () => {
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20" style={{ zIndex: 50 }}>
+      <section
+        className="relative w-full min-h-screen bg-slate-950 flex items-center justify-center px-6 py-20"
+        style={{ zIndex: 50 }}
+      >
         <div className="max-w-2xl w-full text-center">
           <h2 className="text-6xl md:text-7xl font-serif text-white uppercase tracking-wider mb-12">
             Contatti
@@ -123,7 +118,6 @@ const HomeLayered = () => {
             arte@massimodistefano.com
           </a>
 
-          {/* Social Icons */}
           <div className="flex justify-center items-center gap-8 mb-16">
             <a
               href="https://www.instagram.com/massimodistefano65/"
@@ -163,9 +157,8 @@ const HomeLayered = () => {
             </a>
           </div>
 
-          {/* Copyright */}
           <p className="text-xs text-white/40 uppercase tracking-widest">
-            © 2026 Massimo Di Stefano · Tutti i diritti riservati
+            &copy; 2026 Massimo Di Stefano &middot; Tutti i diritti riservati
           </p>
         </div>
       </section>
