@@ -114,14 +114,18 @@ function HomeLayered() {
       </section>
 
       {/* ─── STICKY CARDS ─── */}
-      <div id="cards-section">
-        {layeredSections.map((s) => (
+      <div
+        id="cards-section"
+        style={{ background: "#010409" }}
+      >
+        {layeredSections.map((s, i) => (
           <LayeredCard
             key={s.id}
             category={s.category}
             gradient={s.gradient}
             link={s.link}
             zIndex={s.zIndex}
+            isLast={i === layeredSections.length - 1}
           />
         ))}
       </div>

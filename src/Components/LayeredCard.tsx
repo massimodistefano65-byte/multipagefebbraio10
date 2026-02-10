@@ -6,70 +6,84 @@ interface LayeredCardProps {
   gradient: string;
   link: string;
   zIndex: number;
+  isLast?: boolean;
 }
 
-function LayeredCard({ category, gradient, link, zIndex }: LayeredCardProps) {
+function LayeredCard({
+  category,
+  gradient,
+  link,
+  zIndex,
+  isLast = false,
+}: LayeredCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef(0);
 
-  // scroll-driven state for scale + brightness
   const [scale, setScale] = useState(1);
   const [brightness, setBrightness] = useState(1);
+  const [translateY, setTranslateY] = useState(0);
 
-  // mouse-follow VIEW button
-  const [btnX, setBtnX] = useState(-200);
-  const [btnY, setBtnY] = useState(-200);
+  const [btnX, setBtnX] = useState(-9999);
+  const [btnY, setBtnY] = useState(-9999);
   const [showBtn, setShowBtn] = useState(false);
 
-  // depth shadow grows as card is covered
-  const shadowOpacity = Math.max(0, (1 - scale) * 10); // 0 -> 1
-
   useEffect(() => {
-    function onScroll() {
-      // cancel any queued frame so we only run once per paint
-      cancelAnimationFrame(rafRef.current);
+    // Last card never shrinks -- nothing comes after it
+    if (isLast) return;
 
+    function onScroll() {
+      cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(() => {
         const el = cardRef.current;
         if (!el) return;
 
         const rect = el.getBoundingClientRect();
-        const h = el.offsetHeight || 1;
-
-        // scrollPast = how many px the sticky wrapper has scrolled above viewport top
+        const h = rect.height || 1;
         const scrollPast = -rect.top;
 
         if (scrollPast > 0 && scrollPast < h) {
-          const progress = scrollPast / h;                  // 0 -> 1
-          const nextScale = 1 - Math.min(progress, 1) * 0.1;  // 1.0 -> 0.9
-          const nextBright = 1 - Math.min(progress, 1) * 0.3; // 1.0 -> 0.7
-          setScale(nextScale);
-          setBrightness(nextBright);
+          const p = Math.min(scrollPast / h, 1);
+          setScale(1 - p * 0.35);        // 1.0  ->  0.65
+          setBrightness(1 - p * 0.5);    // 1.0  ->  0.5
+          setTranslateY(p * 20);          // 0    ->  20px
         } else if (scrollPast <= 0) {
           setScale(1);
           setBrightness(1);
+          setTranslateY(0);
         }
       });
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    // run once on mount so the first card renders correctly
     onScroll();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [isLast]);
+
+  // Shadow grows as the card shrinks
+  const progress = Math.max(0, 1 - scale) / 0.35; // normalise 0..1
+  const shadow =
+    progress > 0.01
+      ? `0 ${10 + progress * 30}px ${30 + progress * 60}px rgba(0,0,0,${
+          0.3 + progress * 0.5
+        })`
+      : "0 4px 20px rgba(0,0,0,0.15)";
 
   return (
     <div
       ref={cardRef}
-      className="sticky top-0"
       style={{
+        position: "sticky",
+        top: 0,
         zIndex,
         height: "100vh",
         minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
       onMouseMove={(e) => {
         const el = cardRef.current;
@@ -79,29 +93,45 @@ function LayeredCard({ category, gradient, link, zIndex }: LayeredCardProps) {
         setBtnY(e.clientY - r.top);
       }}
       onMouseEnter={() => setShowBtn(true)}
-      onMouseLeave={() => setShowBtn(false)}
+      onMouseLeave={() => {
+        setShowBtn(false);
+        setBtnX(-9999);
+        setBtnY(-9999);
+      }}
     >
-      {/* Inner card -- scale + dim driven by React state */}
+      {/* Inner visible card */}
       <div
-        className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
+        className={`bg-gradient-to-br ${gradient}`}
         style={{
-          transform: `scale(${scale})`,
+          position: "relative",
+          width: "85%",
+          height: "92%",
+          borderRadius: 50,
+          border: "1px solid rgba(255,255,255,0.1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transform: `scale(${scale}) translateY(${translateY}px)`,
           filter: `brightness(${brightness})`,
-          transition: "transform 0.15s linear, filter 0.15s linear",
+          transition: "transform 0.12s linear, filter 0.12s linear, box-shadow 0.12s linear",
           transformOrigin: "center center",
-          boxShadow:
-            shadowOpacity > 0.01
-              ? `0 ${8 + shadowOpacity * 20}px ${20 + shadowOpacity * 40}px rgba(0,0,0,${0.2 + shadowOpacity * 0.5})`
-              : "none",
+          boxShadow: shadow,
+          willChange: "transform, filter",
         }}
       >
-        {/* Category name */}
+        {/* Category title */}
         <h2
-          className="text-center font-serif text-white uppercase tracking-wider pointer-events-none select-none"
           style={{
-            fontSize: "clamp(40px, 8vw, 80px)",
-            lineHeight: "1",
-            textShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+            textAlign: "center",
+            fontFamily: "serif",
+            color: "#fff",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            pointerEvents: "none",
+            userSelect: "none",
+            fontSize: "clamp(36px, 8vw, 80px)",
+            lineHeight: 1,
+            textShadow: "0 4px 30px rgba(0,0,0,0.4)",
           }}
         >
           {category}
@@ -110,17 +140,32 @@ function LayeredCard({ category, gradient, link, zIndex }: LayeredCardProps) {
         {/* VIEW button follows mouse */}
         <Link
           to={link}
-          className="absolute pointer-events-auto"
           style={{
+            position: "absolute",
             left: btnX,
             top: btnY,
             transform: "translate(-50%, -50%)",
             opacity: showBtn ? 1 : 0,
             transition: "opacity 0.15s",
             zIndex: 20,
+            pointerEvents: showBtn ? "auto" : "none",
           }}
         >
-          <span className="inline-block px-8 py-4 bg-white/90 hover:bg-white text-black font-bold uppercase tracking-widest rounded-full text-sm shadow-2xl hover:shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer">
+          <span
+            style={{
+              display: "inline-block",
+              padding: "16px 32px",
+              background: "rgba(255,255,255,0.92)",
+              color: "#000",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.14em",
+              borderRadius: 9999,
+              fontSize: 14,
+              boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
+              cursor: "pointer",
+            }}
+          >
             VIEW
           </span>
         </Link>
