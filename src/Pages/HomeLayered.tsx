@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   ChevronDown,
   Instagram,
@@ -9,20 +8,10 @@ import {
 import LayeredCard from "../Components/LayeredCard";
 
 const HomeLayered = () => {
-  const [isHeroVisible, setIsHeroVisible] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsHeroVisible(window.scrollY < 100);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   const handleArrowClick = () => {
-    const cardsSection = document.querySelector(".cards-section");
-    if (cardsSection) {
-      cardsSection.scrollIntoView({ behavior: "smooth" });
+    const el = document.getElementById("cards-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -58,12 +47,7 @@ const HomeLayered = () => {
   ];
 
   return (
-    <div
-      style={{
-        background: "#020617",
-        marginTop: "-72px",
-      }}
-    >
+    <div style={{ marginTop: "-72px" }}>
       {/* HERO SECTION */}
       <section
         style={{
@@ -73,85 +57,75 @@ const HomeLayered = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "0 2rem",
+          background: "linear-gradient(135deg, #020617, #7c2d12)",
         }}
       >
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            background: "linear-gradient(135deg, #020617, #7c2d12)",
+            bottom: "2rem",
+            left: "3rem",
+            zIndex: 10,
           }}
-        />
+        >
+          <h1
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3.75rem)",
+              fontFamily: "serif",
+              color: "#fff",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              lineHeight: 1.1,
+            }}
+          >
+            Massimo
+            <br />
+            Di Stefano
+          </h1>
+        </div>
 
         <div
           style={{
-            position: "relative",
+            position: "absolute",
+            bottom: "2rem",
+            right: "3rem",
             zIndex: 10,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
           }}
         >
-          <div style={{ position: "absolute", bottom: "2rem", left: "3rem", zIndex: 20 }}>
-            <h1
-              style={{
-                fontSize: "clamp(2rem, 5vw, 3.75rem)",
-                fontFamily: "serif",
-                color: "#fff",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                lineHeight: 1.1,
-              }}
-            >
-              Massimo
-              <br />
-              Di Stefano
-            </h1>
-          </div>
-
-          <div style={{ position: "absolute", bottom: "2rem", right: "3rem", zIndex: 20 }}>
-            <p
-              style={{
-                fontSize: "clamp(0.75rem, 1.5vw, 1.125rem)",
-                color: "#e5e7eb",
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
-                fontWeight: 300,
-                textAlign: "right",
-              }}
-            >
-              Artista Visuale e Pittore Cosmico
-            </p>
-          </div>
-
-          <button
-            onClick={handleArrowClick}
+          <p
             style={{
-              position: "absolute",
-              bottom: "2rem",
-              right: "2rem",
-              color: "#fff",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.3s",
-              opacity: isHeroVisible ? 1 : 0,
-              pointerEvents: isHeroVisible ? "auto" : "none",
+              fontSize: "clamp(0.75rem, 1.5vw, 1.125rem)",
+              color: "#e5e7eb",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              fontWeight: 300,
+              textAlign: "right",
             }}
-            aria-label="Scorri giù"
           >
-            <ChevronDown size={40} className="arrow-bounce" strokeWidth={1.5} />
-          </button>
+            Artista Visuale e Pittore Cosmico
+          </p>
         </div>
+
+        <button
+          onClick={handleArrowClick}
+          style={{
+            position: "absolute",
+            bottom: "2rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#fff",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+          aria-label="Scorri giù"
+        >
+          <ChevronDown size={40} className="arrow-bounce" strokeWidth={1.5} />
+        </button>
       </section>
 
       {/* LAYERED CARDS SECTION */}
-      <div
-        className="cards-section"
-        style={{ position: "relative" }}
-      >
+      <div id="cards-section">
         {layeredSections.map((section) => (
           <LayeredCard
             key={section.id}
